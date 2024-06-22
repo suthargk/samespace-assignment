@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PlayerProgressBar from "./PlayerProgressBar";
 import PreviousIcon from "../../assets/icons/PreviousIcon";
 import NextIcon from "../../assets/icons/NextIcon";
@@ -101,9 +101,10 @@ const Player = ({
 
   return (
     <div
+      style={{ backgroundImage: `linear-gradient(135deg, ${theme}, #000000)` }}
       ref={playerContainerRef}
       onClick={() => setIsPlayerMaximize(false)}
-      className={`absolute bottom-0 left-0 right-0 h-full flex justify-center bg-black md:bg-transparent items-center duration-300 md:w-3/5 md:relative md:top-0 lg:p-16 ${
+      className={`player-container sm:p-20 md:p-0 absolute bottom-0 left-0 right-0 h-full flex justify-center items-center duration-300 md:w-3/5 md:relative md:top-0 lg:p-16 ${
         isPlayerMaximize ? "top-0 " : " top-full"
       }`}
     >
