@@ -12,6 +12,7 @@ function App() {
   const [songs, setSongs] = useState([]);
   const [search, setSearch] = useState("");
   const [isPlayerMaximize, setIsPlayerMaximize] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const searchSongs = useMemo(() => {
     return songs.filter((song) =>
@@ -31,6 +32,7 @@ function App() {
       .then((data) => {
         setSongs(data.data);
         setCurrentSong(data.data[currentSongIndex]);
+        setLoading(false);
       });
   }, []);
 
@@ -53,6 +55,7 @@ function App() {
       <div className="lg:block lg:w-1/5 hidden">
         <Logo />
       </div>
+
       <ThemeContext.Provider
         value={{
           handleSearch,
@@ -62,6 +65,8 @@ function App() {
           setTheme,
           currentSong,
           handleSelectSong,
+          loading,
+          searchSongsLength: searchSongs.length,
         }}
       >
         <Song songs={search ? searchSongs : songs} />
@@ -70,8 +75,7 @@ function App() {
       <div
         style={{ background: theme }}
         onClick={() => {
-          console.log("setIsPlayerMaximize(true)")
-          setIsPlayerMaximize(true)
+          setIsPlayerMaximize(true);
         }}
         className="md:hidden fixed bottom-0 left-0 brightness-125 h-12 w-full text-white flex"
       >
@@ -94,6 +98,7 @@ function App() {
         isPlayerMaximize={isPlayerMaximize}
         setIsPlayerMaximize={setIsPlayerMaximize}
         currentSong={currentSong}
+        loading={loading}
         theme={theme}
         onNext={() => {
           const nextIndex =
@@ -109,8 +114,6 @@ function App() {
           setCurrentSongIndex(prevIndex);
         }}
       />
-
-
     </div>
   );
 }

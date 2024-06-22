@@ -7,15 +7,7 @@ import PauseIcon from "../../assets/icons/PauseIcon";
 import VolumeIcon from "../../assets/icons/VolumeIcon";
 import OptionIcon from "../../assets/icons/OptionIcon";
 import SpinnerIcon from "../../assets/icons/SpinnerIcon";
-
-function formatDurationDisplay(duration) {
-  const min = Math.floor(duration / 60);
-  const sec = Math.floor(duration - min * 60);
-
-  const formatted = [min, sec].map((n) => (n < 10 ? "0" + n : n)).join(":");
-
-  return formatted;
-}
+import PlayerLoader from "../Loader/PlayerLoader";
 
 const Player = ({
   currentSong,
@@ -24,6 +16,7 @@ const Player = ({
   theme,
   isPlayerMaximize,
   setIsPlayerMaximize,
+  loading,
 }) => {
   const audioRef = useRef();
   const [isReady, setIsReady] = useState(false);
@@ -33,9 +26,6 @@ const Player = ({
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
   const playerContainerRef = useRef(null);
-
-  const durationDisplay = formatDurationDisplay(duration);
-  const elapsedDisplay = formatDurationDisplay(currrentProgress);
 
   useEffect(() => {
     audioRef.current?.pause();
@@ -104,123 +94,125 @@ const Player = ({
       style={{ backgroundImage: `linear-gradient(135deg, ${theme}, #000000)` }}
       ref={playerContainerRef}
       onClick={() => setIsPlayerMaximize(false)}
-      className={`player-container sm:p-20 md:p-0 absolute bottom-0 left-0 right-0 h-full flex justify-center items-center duration-300 md:w-3/5 md:relative md:top-0 lg:p-16 ${
+      className={`player-container sm:p-20 md:p-0 ${
+        loading ? "md:block md:top-[64px] lg:top-0" : ""
+      } absolute bottom-0 left-0 right-0 h-full flex justify-center items-center duration-300 md:w-3/5 md:relative md:top-0 lg:p-16 ${
         isPlayerMaximize ? "top-0 " : " top-full"
       }`}
     >
-      <div className="w-3/4">
-        <div className="">
-          <div className="mb-6">
-            <h2 className="text-2xl text-white font-semibold">
-              {currentSong.name}
-            </h2>
-            <h5 className="opacity-50 text-sm font-light text-white">
-              {currentSong.artist}
-            </h5>
+      {loading ? (
+        <PlayerLoader theme={theme} />
+      ) : (
+        <div className="w-3/4">
+          <div className="">
+            <div className="mb-6">
+              <h2 className="text-2xl text-white font-semibold">
+                {currentSong.name}
+              </h2>
+              <h5 className="opacity-50 text-sm font-light text-white">
+                {currentSong.artist}
+              </h5>
+            </div>
+
+            <div className="flex">
+              <img
+                className="lg:h-auto w-full aspect-square rounded-md"
+                src={`https://cms.samespace.com/assets/${currentSong.cover}`}
+              />
+            </div>
           </div>
 
-          <div className="flex">
-            <img
-              className="lg:h-auto w-full aspect-square rounded-md"
-              src={`https://cms.samespace.com/assets/${currentSong.cover}`}
-            />
-          </div>
-        </div>
+          {currentSong.url && (
+            <audio
+              ref={audioRef}
+              preload="metadata"
+              onDurationChange={(e) => setDuration(e.currentTarget.duration)}
+              onPlaying={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={handleNext}
+              onCanPlay={(e) => {
+                e.currentTarget.volume = volume;
+                setIsReady(true);
+              }}
+              onTimeUpdate={(e) => {
+                setCurrrentProgress(e.currentTarget.currentTime);
+                handleBufferProgress(e);
+              }}
+              onProgress={handleBufferProgress}
+              onVolumeChange={(e) => setVolume(e.currentTarget.volume)}
+            >
+              <source type="audio/mpeg" src={currentSong.url} />
+            </audio>
+          )}
 
-        {currentSong.url && (
-          <audio
-            ref={audioRef}
-            preload="metadata"
-            onDurationChange={(e) => setDuration(e.currentTarget.duration)}
-            onPlaying={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            onEnded={handleNext}
-            onCanPlay={(e) => {
-              e.currentTarget.volume = volume;
-              setIsReady(true);
+          <PlayerProgressBar
+            duration={duration}
+            currentProgress={currrentProgress}
+            buffered={buffered}
+            onChange={(e) => {
+              if (!audioRef.current) return;
+
+              audioRef.current.currentTime = e.currentTarget.valueAsNumber;
+
+              setCurrrentProgress(e.currentTarget.valueAsNumber);
             }}
-            onTimeUpdate={(e) => {
-              setCurrrentProgress(e.currentTarget.currentTime);
-              handleBufferProgress(e);
-            }}
-            onProgress={handleBufferProgress}
-            onVolumeChange={(e) => setVolume(e.currentTarget.volume)}
-          >
-            <source type="audio/mpeg" src={currentSong.url} />
-          </audio>
-        )}
+          />
 
-        <PlayerProgressBar
-          duration={duration}
-          currentProgress={currrentProgress}
-          buffered={buffered}
-          onChange={(e) => {
-            if (!audioRef.current) return;
-
-            audioRef.current.currentTime = e.currentTarget.valueAsNumber;
-
-            setCurrrentProgress(e.currentTarget.valueAsNumber);
-          }}
-        />
-
-        <div className="mt-6 flex justify-between items-center">
-          {/* <span className="text-xs">
-          {elapsedDisplay} / {durationDisplay}
-        </span> */}
-
-          <div className="cursor-pointer">
-            <OptionIcon />
-          </div>
-
-          <div className="flex items-center gap-4 justify-self-center">
-            <div
-              onClick={handlePrev}
-              aria-label="go to previous"
-              className="cursor-pointer"
-            >
-              <PreviousIcon />
+          <div className="mt-6 flex justify-between items-center">
+            <div className="cursor-pointer">
+              <OptionIcon />
             </div>
-            <div
-              disabled={!isReady}
-              className="cursor-pointer"
-              onClick={togglePlayPause}
-              aria-label={isPlaying ? "Pause" : "Play"}
-              size="lg"
-            >
-              {!isReady && currentSong.url ? (
-                <SpinnerIcon />
-              ) : isPlaying ? (
-                <PauseIcon />
-              ) : (
-                <PlayIcon />
-              )}
-            </div>
-            <div
-              className="cursor-pointer"
-              onClick={handleNext}
-              aria-label="go to next"
-            >
-              <NextIcon />
-            </div>
-          </div>
 
-          <div className="flex gap-3 items-center justify-self-end cursor-pointer">
-            <div
-              onClick={handleMuteUnmute}
-              aria-label={volume === 0 ? "unmute" : "mute"}
-            >
-              {volume === 0 ? (
-                <div className="relative ">
+            <div className="flex items-center gap-4 justify-self-center">
+              <div
+                onClick={handlePrev}
+                aria-label="go to previous"
+                className="cursor-pointer"
+              >
+                <PreviousIcon />
+              </div>
+              <div
+                disabled={!isReady}
+                className="cursor-pointer"
+                onClick={togglePlayPause}
+                aria-label={isPlaying ? "Pause" : "Play"}
+                size="lg"
+              >
+                {!isReady && currentSong.url ? (
+                  <SpinnerIcon />
+                ) : isPlaying ? (
+                  <PauseIcon />
+                ) : (
+                  <PlayIcon />
+                )}
+              </div>
+              <div
+                className="cursor-pointer"
+                onClick={handleNext}
+                aria-label="go to next"
+              >
+                <NextIcon />
+              </div>
+            </div>
+
+            <div className="flex gap-3 items-center justify-self-end cursor-pointer">
+              <div
+                onClick={handleMuteUnmute}
+                aria-label={volume === 0 ? "unmute" : "mute"}
+              >
+                {volume === 0 ? (
+                  <div className="relative ">
+                    <VolumeIcon />
+                    <div className="rounded-full h-3/5 top-2.5 left-1/2 w-1 absolute bg-white -rotate-45"></div>
+                  </div>
+                ) : (
                   <VolumeIcon />
-                  <div className="rounded-full h-3/5 top-2.5 left-1/2 w-1 absolute bg-white -rotate-45"></div>
-                </div>
-              ) : (
-                <VolumeIcon />
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
