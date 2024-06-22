@@ -1,7 +1,8 @@
-import { createContext, useEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useRef, useState } from "react";
 import Player from "./components/Player";
 import Song from "./components/Song";
 import Logo from "./assets/icons/Logo";
+import MiniPlayer from "./components/Player/MiniPlayer";
 
 export const ThemeContext = createContext();
 
@@ -13,6 +14,8 @@ function App() {
   const [search, setSearch] = useState("");
   const [isPlayerMaximize, setIsPlayerMaximize] = useState(false);
   const [loading, setLoading] = useState(true);
+  const audioRef = useRef();
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const searchSongs = useMemo(() => {
     return songs.filter((song) =>
@@ -47,6 +50,17 @@ function App() {
     setSearch(value);
   };
 
+  const togglePlayPause = (e) => {
+    e.stopPropagation();
+    if (isPlaying) {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current?.play();
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <div
       style={{ backgroundImage: `linear-gradient(135deg, ${theme}, #000000)` }}
@@ -72,29 +86,20 @@ function App() {
         <Song songs={search ? searchSongs : songs} />
       </ThemeContext.Provider>
 
-      <div
-        style={{ background: theme }}
-        onClick={() => {
-          setIsPlayerMaximize(true);
-        }}
-        className="md:hidden fixed bottom-0 left-0 brightness-125 h-12 w-full text-white flex"
-      >
-        <div className="flex gap-3">
-          <div className="w-12 h-full">
-            <img
-              className="w-full h-full"
-              src={`https://cms.samespace.com/assets/${currentSong.cover}`}
-            />
-          </div>
-          <div className="p-1">
-            <h3 className="font-light text-sm">{currentSong.name}</h3>
-            <h5 className="text-xs opacity-60">{currentSong.artist}</h5>
-          </div>
-        </div>
-      </div>
+      <MiniPlayer
+        setIsPlayerMaximize={setIsPlayerMaximize}
+        theme={theme}
+        currentSong={currentSong}
+        togglePlayPause={togglePlayPause}
+        isPlaying={isPlaying}
+      />
 
       <Player
         key={currentSong.url}
+        audioRef={audioRef}
+        setIsPlaying={setIsPlaying}
+        isPlaying={isPlaying}
+        togglePlayPause={togglePlayPause}
         isPlayerMaximize={isPlayerMaximize}
         setIsPlayerMaximize={setIsPlayerMaximize}
         currentSong={currentSong}

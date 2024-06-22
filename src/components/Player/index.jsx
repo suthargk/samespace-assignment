@@ -17,14 +17,17 @@ const Player = ({
   isPlayerMaximize,
   setIsPlayerMaximize,
   loading,
+  audioRef,
+  togglePlayPause,
+  setIsPlaying,
+  isPlaying,
 }) => {
-  const audioRef = useRef();
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currrentProgress, setCurrrentProgress] = useState(0);
   const [buffered, setBuffered] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
+
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
@@ -46,17 +49,6 @@ const Player = ({
   const handlePrev = (e) => {
     e.stopPropagation();
     onPrev();
-  };
-
-  const togglePlayPause = (e) => {
-    e.stopPropagation();
-    if (isPlaying) {
-      audioRef.current?.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current?.play();
-      setIsPlaying(true);
-    }
   };
 
   const handleBufferProgress = (e) => {

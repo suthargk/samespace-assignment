@@ -8,7 +8,7 @@ const PlayIcon = ({ ...rest }) => {
       xmlns="http://www.w3.org/2000/svg"
       {...rest}
     >
-      <g clipPath="url(#clip0_1_39)">
+      <g>
         <path
           fillRule="evenodd"
           clipRule="evenodd"
@@ -17,7 +17,7 @@ const PlayIcon = ({ ...rest }) => {
         />
       </g>
       <defs>
-        <clipPath id="clip0_1_39">
+        <clipPath>
           <rect
             width="48"
             height="48"
