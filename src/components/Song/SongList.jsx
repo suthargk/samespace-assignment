@@ -3,7 +3,7 @@ import SongHeader from "./SongHeader";
 
 const SongList = ({ songs }) => {
   return (
-    <div className="w-[400px] space-y-4 border border-red-500">
+    <div className="w-full lg:w-[400px] space-y-4">
       <SongHeader />
       <Outlet context={{ songs }} />
     </div>

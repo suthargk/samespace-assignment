@@ -6,9 +6,9 @@ const SongNavigation = () => {
   return (
     <div className="space-x-8">
       <Link
-        to="suggested"
+        to=""
         className={`text-lg font-semibold text-white ${
-          pathname === "/suggested" ? "opacity-1" : "opacity-35"
+          pathname === "/" ? "opacity-1" : "opacity-35"
         }`}
       >
         For You

@@ -1,5 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import PlayerProgressBar from "./PlayerProgressBar";
+import PreviousIcon from "../../assets/icons/PreviousIcon";
+import NextIcon from "../../assets/icons/NextIcon";
+import PlayIcon from "../../assets/icons/PlayIcon";
+import PauseIcon from "../../assets/icons/PauseIcon";
+import VolumeIcon from "../../assets/icons/VolumeIcon";
+import OptionIcon from "../../assets/icons/OptionIcon";
+import SpinnerIcon from "../../assets/icons/SpinnerIcon";
 
 function formatDurationDisplay(duration) {
   const min = Math.floor(duration / 60);
@@ -10,21 +17,28 @@ function formatDurationDisplay(duration) {
   return formatted;
 }
 
-const Player = ({ currentSong }) => {
+const Player = ({
+  currentSong,
+  onNext,
+  onPrev,
+  theme,
+  isPlayerMaximize,
+  setIsPlayerMaximize,
+}) => {
   const audioRef = useRef();
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currrentProgress, setCurrrentProgress] = useState(0);
   const [buffered, setBuffered] = useState(0);
-  const [volume, setVolume] = useState(0.2);
+  const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const playerContainerRef = useRef(null);
 
   const durationDisplay = formatDurationDisplay(duration);
   const elapsedDisplay = formatDurationDisplay(currrentProgress);
 
   useEffect(() => {
     audioRef.current?.pause();
-
     const timeout = setTimeout(() => {
       audioRef.current?.play();
     }, 500);
@@ -34,15 +48,18 @@ const Player = ({ currentSong }) => {
     };
   }, [currentSong]);
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    e.stopPropagation();
     onNext();
   };
 
-  const handlePrev = () => {
+  const handlePrev = (e) => {
+    e.stopPropagation();
     onPrev();
   };
 
-  const togglePlayPause = () => {
+  const togglePlayPause = (e) => {
+    e.stopPropagation();
     if (isPlaying) {
       audioRef.current?.pause();
       setIsPlaying(false);
@@ -71,7 +88,8 @@ const Player = ({ currentSong }) => {
     }
   };
 
-  const handleMuteUnmute = () => {
+  const handleMuteUnmute = (e) => {
+    e.stopPropagation();
     if (!audioRef.current) return;
 
     if (audioRef.current.volume !== 0) {
@@ -81,96 +99,125 @@ const Player = ({ currentSong }) => {
     }
   };
 
-  const handleVolumeChange = (volumeValue) => {
-    if (!audioRef.current) return;
-    audioRef.current.volume = volumeValue;
-    setVolume(volumeValue);
-  };
-
   return (
-    <div className="w-2/5">
-      {currentSong && (
-        <audio
-          ref={audioRef}
-          preload="metadata"
-          onDurationChange={(e) => setDuration(e.currentTarget.duration)}
-          onPlaying={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onEnded={handleNext}
-          onCanPlay={(e) => {
-            e.currentTarget.volume = volume;
-            setIsReady(true);
-          }}
-          onTimeUpdate={(e) => {
-            setCurrrentProgress(e.currentTarget.currentTime);
-            handleBufferProgress(e);
-          }}
-          onProgress={handleBufferProgress}
-          onVolumeChange={(e) => setVolume(e.currentTarget.volume)}
-        >
-          <source type="audio/mpeg" src={currentSong.url} />
-        </audio>
-      )}
+    <div
+      ref={playerContainerRef}
+      onClick={() => setIsPlayerMaximize(false)}
+      className={`absolute bottom-0 left-0 right-0 h-full flex justify-center bg-black md:bg-transparent items-center duration-300 md:w-3/5 md:relative md:top-0 lg:p-16 ${
+        isPlayerMaximize ? "top-0 " : " top-full"
+      }`}
+    >
+      <div className="w-3/4">
+        <div className="">
+          <div className="mb-6">
+            <h2 className="text-2xl text-white font-semibold">
+              {currentSong.name}
+            </h2>
+            <h5 className="opacity-50 text-sm font-light text-white">
+              {currentSong.artist}
+            </h5>
+          </div>
 
-      <PlayerProgressBar
-        duration={duration}
-        currentProgress={currrentProgress}
-        buffered={buffered}
-        onChange={(e) => {
-          if (!audioRef.current) return;
-
-          audioRef.current.currentTime = e.currentTarget.valueAsNumber;
-
-          setCurrrentProgress(e.currentTarget.valueAsNumber);
-        }}
-      />
-
-      <div className="flex flex-col items-center justify-center">
-        <div className="text-center mb-1">
-          <p className="text-slate-300 font-bold">
-            {currentSong?.name ?? "Select a song"}
-          </p>
-          <p className="text-xs">Singer Name</p>
+          <div className="flex">
+            <img
+              className="lg:h-auto w-full aspect-square rounded-md"
+              src={`https://cms.samespace.com/assets/${currentSong.cover}`}
+            />
+          </div>
         </div>
-      </div>
-      <div className=" mt-4">
-        <span className="text-xs">
+
+        {currentSong.url && (
+          <audio
+            ref={audioRef}
+            preload="metadata"
+            onDurationChange={(e) => setDuration(e.currentTarget.duration)}
+            onPlaying={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={handleNext}
+            onCanPlay={(e) => {
+              e.currentTarget.volume = volume;
+              setIsReady(true);
+            }}
+            onTimeUpdate={(e) => {
+              setCurrrentProgress(e.currentTarget.currentTime);
+              handleBufferProgress(e);
+            }}
+            onProgress={handleBufferProgress}
+            onVolumeChange={(e) => setVolume(e.currentTarget.volume)}
+          >
+            <source type="audio/mpeg" src={currentSong.url} />
+          </audio>
+        )}
+
+        <PlayerProgressBar
+          duration={duration}
+          currentProgress={currrentProgress}
+          buffered={buffered}
+          onChange={(e) => {
+            if (!audioRef.current) return;
+
+            audioRef.current.currentTime = e.currentTarget.valueAsNumber;
+
+            setCurrrentProgress(e.currentTarget.valueAsNumber);
+          }}
+        />
+
+        <div className="mt-6 flex justify-between items-center">
+          {/* <span className="text-xs">
           {elapsedDisplay} / {durationDisplay}
-        </span>
-        <div className="flex items-center gap-4 justify-self-center">
-          <div
-            onClick={handlePrev}
-            // disabled={songIndex === 0}
-            aria-label="go to previous"
-          >
-            previous
-          </div>
-          <div
-            disabled={!isReady}
-            onClick={togglePlayPause}
-            aria-label={isPlaying ? "Pause" : "Play"}
-            size="lg"
-          >
-            {!isReady && currentSong ? "spinner" : isPlaying ? "Pause" : "Play"}
-          </div>
-          <div
-            onClick={handleNext}
-            // disabled={songIndex === songCount - 1}
-            aria-label="go to next"
-          >
-            Next
-          </div>
-        </div>
+        </span> */}
 
-        <div className="flex gap-3 items-center justify-self-end">
-          <div
-            size="sm"
-            onClick={handleMuteUnmute}
-            aria-label={volume === 0 ? "unmute" : "mute"}
-          >
-            {volume === 0 ? "Off" : "Up"}
+          <div className="cursor-pointer">
+            <OptionIcon />
           </div>
-          {/* <VolumeInput volume={volume} onVolumeChange={handleVolumeChange} /> */}
+
+          <div className="flex items-center gap-4 justify-self-center">
+            <div
+              onClick={handlePrev}
+              aria-label="go to previous"
+              className="cursor-pointer"
+            >
+              <PreviousIcon />
+            </div>
+            <div
+              disabled={!isReady}
+              className="cursor-pointer"
+              onClick={togglePlayPause}
+              aria-label={isPlaying ? "Pause" : "Play"}
+              size="lg"
+            >
+              {!isReady && currentSong.url ? (
+                <SpinnerIcon />
+              ) : isPlaying ? (
+                <PauseIcon />
+              ) : (
+                <PlayIcon />
+              )}
+            </div>
+            <div
+              className="cursor-pointer"
+              onClick={handleNext}
+              aria-label="go to next"
+            >
+              <NextIcon />
+            </div>
+          </div>
+
+          <div className="flex gap-3 items-center justify-self-end cursor-pointer">
+            <div
+              onClick={handleMuteUnmute}
+              aria-label={volume === 0 ? "unmute" : "mute"}
+            >
+              {volume === 0 ? (
+                <div className="relative ">
+                  <VolumeIcon />
+                  <div className="rounded-full h-3/5 top-2.5 left-1/2 w-1 absolute bg-white -rotate-45"></div>
+                </div>
+              ) : (
+                <VolumeIcon />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
