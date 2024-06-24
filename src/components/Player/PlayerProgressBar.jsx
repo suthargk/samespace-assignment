@@ -19,7 +19,7 @@ const PlayerProgressBar = ({
       <input
         type="range"
         name="progress"
-        className={`progress-bar absolute inset-0 w-full m-0 h-full bg-transparent appearance-none cursor-pointer group-hover:h-2 transition-all accent-white  before:absolute before:inset-0 before:h-full before:w-full before:bg-white before:rounded-full rounded-full before:origin-left after:absolute after:h-full after:rounded-full after:w-full after:bg-zinc-600`}
+        className={`progress-bar absolute inset-0 w-full m-0 h-full bg-gray-600 appearance-none cursor-pointer group-hover:h-2 transition-all accent-white  before:absolute before:inset-0 before:h-full before:w-full before:bg-white before:rounded-full rounded-full before:origin-left after:absolute after:h-full after:rounded-full after:w-full after:bg-zinc-300`}
         style={progressStyles}
         min={0}
         max={duration}

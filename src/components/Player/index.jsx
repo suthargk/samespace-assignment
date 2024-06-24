@@ -89,7 +89,7 @@ const Player = ({
       className={`player-container sm:p-20 md:p-0 ${
         loading ? "md:block md:top-[64px] lg:top-0" : ""
       } absolute bottom-0 left-0 right-0 h-full flex justify-center items-center duration-300 md:w-3/5 md:relative md:top-0 lg:p-16 ${
-        isPlayerMaximize ? "top-0 " : " top-full"
+        isPlayerMaximize ? "top-0" : " top-full"
       }`}
     >
       {loading ? (
